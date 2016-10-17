@@ -12,14 +12,16 @@ module.exports = function(gulp) {
     // We parse the json file instead of using require because require caches
     // multiple calls so the version number won't be updated
     return JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
-  };
+  }
 
   var defaultOptions = {
     string: 'env',
     default: {
       env: process.env.NODE_ENV || 'production',
-      bump: 'patch'
-    },
+      sources: ['./bower.json', './package.json'],
+      bump: 'patch',
+      version: null
+    }
   };
 
   var options = minimist(process.argv.slice(2), defaultOptions);
@@ -41,26 +43,26 @@ module.exports = function(gulp) {
    * A task to bump package.json version
    **/
   gulp.task('build:bump-version', function () {
-    return gulp.src(['./bower.json', './package.json'])
-      .pipe(bump({type: options.bump}).on('error', gutil.log))
+    return gulp.src(options.sources)
+      .pipe(bump(options.version ? {version: options.version} : {type: options.bump}).on('error', gutil.log))
       .pipe(gulp.dest('./'));
   });
 
   /**
    * A task to set package.json version
    **/
-  gulp.task('build:set-version', function() {
+  gulp.task('build:set-version', function(cb) {
     if (!options.version) {
-      return cb('Invalid semver ' + parsed);
+      return cb('No version argument!');
     }
 
+    // FIXME: this does nothing!
     var verKey = options.version_key || 'version';
     var regex = opts.regex || new RegExp(
       '([\'|\"]?' + verKey + '[\'|\"]?[ ]*:[ ]*[\'|\"]?)(\\d+\\.\\d+\\.\\d+(-' +
       options.version_preid +
       '\\.\\d+)?(-\\d+)?)[\\d||A-a|.|-]*([\'|\"]?)', 'i');
-    
-  })
+  });
 
   /**
    * A task to commit all changes in current workspace.

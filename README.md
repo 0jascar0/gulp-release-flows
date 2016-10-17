@@ -42,3 +42,7 @@ This will bump the `patch` version, minor / major can be bumped by the following
 Or
 
 `gulp build:release --bump major`
+
+You can also bump to a specific release version using the following command:
+
+`gulp build:release --version 0.1.0-beta.3`
