@@ -1,4 +1,4 @@
-module.exports = function(gulp) {
+module.exports = function(config) {
   var gulp = require('gulp');
   var runSequence = require('run-sequence');
   var conventionalChangelog = require('gulp-conventional-changelog');
@@ -8,22 +8,21 @@ module.exports = function(gulp) {
   var fs = require('fs');
   var minimist = require('minimist');
 
-  function getPackageJsonVersion () {
-    // We parse the json file instead of using require because require caches
-    // multiple calls so the version number won't be updated
-    return JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
-  }
-
+  config = config || {};
+  
   var defaultOptions = {
     string: 'env',
     default: {
       env: process.env.NODE_ENV || 'production',
-      sources: ['./bower.json', './package.json'],
-      bump: 'patch',
-      version: null
+      sources: config.sources || ['./bower.json', './package.json'],
+      branch: config.branch || 'master',
+      bump: config.bump || 'patch',
+      message: config.message || 'Release %VERSION%',
+      version: config.version
     }
   };
 
+  // Parse arguments options, if any:
   var options = minimist(process.argv.slice(2), defaultOptions);
 
   /**
@@ -70,26 +69,26 @@ module.exports = function(gulp) {
   gulp.task('build:commit-changes', function () {
     return gulp.src('.')
       .pipe(git.add())
-      .pipe(git.commit(`Bumped version number: ${getPackageJsonVersion()}`));
+      .pipe(git.commit(options.message.replace('%VERSION%', getPackageJsonVersion())));
   });
 
   /**
    * A task to push all commits to master branch
    **/
   gulp.task('build:push-changes', function (cb) {
-    git.push('origin', 'master', cb);
+    git.push('origin', options.branch, cb);
   });
 
   /**
    * Create a tag for the current version where version is taken from the package.json file
    **/
   gulp.task('build:create-new-tag', function (cb) {
-    var version = getPackageJsonVersion();
-    git.tag(version, 'Created Tag for version: ' + version, function (error) {
+    var version = options.version || getPackageJsonVersion();
+    git.tag(version, options.message.replace('%VERSION%', getPackageJsonVersion()), function (error) {
       if (error) {
         return cb(error);
       }
-      git.push('origin', 'master', {args: '--tags'}, cb);
+      git.push('origin', options.branch, {args: '--tags'}, cb);
     });
   });
 
@@ -109,5 +108,11 @@ module.exports = function(gulp) {
         callback(error);
       });
   });
+
+  function getPackageJsonVersion () {
+    // We parse the json file instead of using require because require caches
+    // multiple calls so the version number won't be updated
+    return JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
+  }
 
 };

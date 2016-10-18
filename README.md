@@ -23,8 +23,15 @@ Create a `gulpfile.js` in your project with:
 ```js
 // add to gulpfile.js
 var gulp = require('gulp');
-// pass along gulp reference to have tasks imported
-require('gulp-release-flows')(gulp);
+
+// pass along an *optional* config, if needed
+require('gulp-release-flows')({
+  sources: ['./bower.json', './package.json'],
+  branch: 'master',
+  bump: 'patch',
+  message: 'Release %VERSION%',
+  version: null // If null or not specified, will be retrieved from './package.json'
+});
 ```
 
 To see all imported tasks, run:
