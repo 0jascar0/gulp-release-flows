@@ -30,7 +30,7 @@ require('gulp-release-flows')({
   branch: 'master',
   bump: 'patch',
   message: 'Release %VERSION%',
-  version: null // If null or not specified, will be retrieved from './package.json'
+  tag: null // The new version number. If null or not specified, will be retrieved from './package.json'.
 });
 ```
 
@@ -52,4 +52,4 @@ Or
 
 You can also bump to a specific release version using the following command:
 
-`gulp build:release --version 0.1.0-beta.3`
+`gulp build:release --tag 0.1.0-beta.3`

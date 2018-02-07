@@ -1,4 +1,4 @@
-module.exports = function(config) {
+module.exports = function (config) {
   var gulp = require('gulp');
   var runSequence = require('run-sequence');
   var conventionalChangelog = require('gulp-conventional-changelog');
@@ -9,7 +9,7 @@ module.exports = function(config) {
   var minimist = require('minimist');
 
   config = config || {};
-  
+
   var defaultOptions = {
     string: 'env',
     default: {
@@ -18,7 +18,7 @@ module.exports = function(config) {
       branch: config.branch || 'master',
       bump: config.bump || 'patch',
       message: config.message || 'Release %VERSION%',
-      version: config.version
+      tag: config.tag
     }
   };
 
@@ -32,10 +32,10 @@ module.exports = function(config) {
     return gulp.src('CHANGELOG.md', {
       buffer: false
     })
-      .pipe(conventionalChangelog({
-        preset: 'eslint'
-      }))
-      .pipe(gulp.dest('./'));
+    .pipe(conventionalChangelog({
+      preset: 'eslint'
+    }))
+    .pipe(gulp.dest('./'));
   });
 
   /**
@@ -43,24 +43,8 @@ module.exports = function(config) {
    **/
   gulp.task('build:bump-version', function () {
     return gulp.src(options.sources)
-      .pipe(bump(options.version ? {version: options.version} : {type: options.bump}).on('error', gutil.log))
+      .pipe(bump(options.tag ? {version: options.tag} : {type: options.bump}).on('error', gutil.log))
       .pipe(gulp.dest('./'));
-  });
-
-  /**
-   * A task to set package.json version
-   **/
-  gulp.task('build:set-version', function(cb) {
-    if (!options.version) {
-      return cb('No version argument!');
-    }
-
-    // FIXME: this does nothing!
-    var verKey = options.version_key || 'version';
-    var regex = opts.regex || new RegExp(
-      '([\'|\"]?' + verKey + '[\'|\"]?[ ]*:[ ]*[\'|\"]?)(\\d+\\.\\d+\\.\\d+(-' +
-      options.version_preid +
-      '\\.\\d+)?(-\\d+)?)[\\d||A-a|.|-]*([\'|\"]?)', 'i');
   });
 
   /**
@@ -83,7 +67,7 @@ module.exports = function(config) {
    * Create a tag for the current version where version is taken from the package.json file
    **/
   gulp.task('build:create-new-tag', function (cb) {
-    var version = options.version || getPackageJsonVersion();
+    var version = options.tag || getPackageJsonVersion();
     git.tag(version, options.message.replace('%VERSION%', getPackageJsonVersion()), function (error) {
       if (error) {
         return cb(error);
@@ -109,7 +93,7 @@ module.exports = function(config) {
       });
   });
 
-  function getPackageJsonVersion () {
+  function getPackageJsonVersion() {
     // We parse the json file instead of using require because require caches
     // multiple calls so the version number won't be updated
     return JSON.parse(fs.readFileSync('./package.json', 'utf8')).version;
